@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Environment files (never include secrets in image builds from remote CI)
+.env
+.env.*
+
+# Build artifacts
+build/
+dist/
+*.spec
+
+# Output
+downloads/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.code-workspace
+
+# Node (if added later)
+node_modules/

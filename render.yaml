@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: spotify2mp3-web
+    env: docker
+    plan: starter
+    autoDeploy: true
+    envVars:
+      - key: SPOTIFY_CLIENT_ID
+        sync: false
+      - key: SPOTIFY_CLIENT_SECRET
+        sync: false
+      - key: OUTPUT_DIR
+        value: /data/downloads
+    disk:
+      name: s2mp3-data
+      mountPath: /data
+      sizeGB: 5
