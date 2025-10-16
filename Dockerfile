@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 # Install dependencies first for better layer caching
-COPY requirements.txt web/requirements-web.txt ./
+COPY requirements.txt requirements-web.txt ./
 RUN pip install --no-cache-dir -r requirements.txt && \
     pip install --no-cache-dir -r requirements-web.txt
 
