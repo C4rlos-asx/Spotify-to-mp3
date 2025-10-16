@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spotify to MP3 Web</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Spotify → MP3</h1>
+    
+    <form id="job-form" enctype="multipart/form-data">
+      <label for="url">URL de Spotify (track/album/playlist)</label>
+      <input id="url" name="url" type="url" required placeholder="https://open.spotify.com/..." />
+
+      <label class="chk">
+        <input id="trim" name="trim" type="checkbox" />
+        Recortar al tiempo de Spotify
+      </label>
+      <button type="submit">Iniciar</button>
+    </form>
+
+    <div id="job" class="hidden">
+      <h2>Progreso</h2>
+      
+      <div class="now">
+        <div>
+          <span id="now-title" class="muted">Canción actual: —</span>
+          <span id="now-count" class="muted">[0/0]</span>
+          <span id="now-state" class="badge">—</span>
+        </div>
+      </div>
+      <pre id="logs" class="logs"></pre>
+      <div class="actions">
+        <a id="download-link" class="btn hidden" href="#" download>Descargar canción</a>
+      </div>
+    </div>
+  </div>
+  <script src="/static/app.js"></script>
+</body>
+</html>

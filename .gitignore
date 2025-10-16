@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Environment files
+.env
+.env.*
+
+# PyInstaller / build artifacts
+build/
+dist/
+*.spec
+
+# Project output
+downloads/
+
+# Logs and temp
+*.log
+*.tmp
+*.temp
+*.bak
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE/editor
+.vscode/
+.idea/
+*.code-workspace
+
+# Local ffmpeg binaries (opcional local)
+ffmpeg/
+ffmpeg.exe
+
+# Node (si se agrega tooling en el futuro)
+node_modules/
