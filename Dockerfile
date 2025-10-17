@@ -1,6 +1,7 @@
 FROM python:3.12-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV PIP_ROOT_USER_ACTION=ignore
 WORKDIR /app
 
 # ffmpeg + certificates

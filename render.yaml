@@ -11,6 +11,10 @@ services:
         sync: false
       - key: OUTPUT_DIR
         value: /data/downloads
+      - key: YT_GEO
+        value: US
+      - key: YT_SOURCE_ADDRESS
+        value: 0.0.0.0
     disk:
       name: s2mp3-data
       mountPath: /data

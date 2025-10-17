@@ -486,6 +486,10 @@ def download_and_convert(
     # Resolve authentication preferences (no cookies supported)
     use_auth = bool(username or usenetrc)
 
+    # Optional region/IP settings from environment
+    yt_geo = os.getenv("YT_GEO")
+    yt_source_addr = os.getenv("YT_SOURCE_ADDRESS")
+
     ydl_opts = {
         "format": "bestaudio/best",
         "outtmpl": outtmpl,
@@ -531,6 +535,11 @@ def download_and_convert(
         # "max_sleep_interval": 3.0,
         "geo_bypass": True,
     }
+    # Apply region/cookies/IP if provided
+    if yt_geo and len(yt_geo.strip()) == 2:
+        ydl_opts["geo_bypass_country"] = yt_geo.strip().upper()
+    if yt_source_addr:
+        ydl_opts["source_address"] = yt_source_addr
     # yt-dlp authentication options
     # Do not set username/password for YouTube (not supported); we still allow for other sites
     youtube_domain = "youtube.com"
@@ -574,6 +583,11 @@ def download_and_convert(
                     # usar android también para preflight
                     "extractor_args": {"youtube": {"player_client": ["android"]}},
                 }
+                # Carry region/IP into preflight
+                if yt_geo and len(yt_geo.strip()) == 2:
+                    info_opts["geo_bypass_country"] = yt_geo.strip().upper()
+                if yt_source_addr:
+                    info_opts["source_address"] = yt_source_addr
                 with YoutubeDL(info_opts) as ydl:
                     meta_info = ydl.extract_info(cand, download=False)
                     if "entries" in meta_info:
@@ -627,6 +641,7 @@ def download_and_convert(
                         try:
                             opts_android = dict(ydl_opts)
                             opts_android["extractor_args"] = {"youtube": {"player_client": ["android"]}}
+                            # Already has geo/cookies/source via ydl_opts copy
                             with YoutubeDL(opts_android) as ydl:
                                 info = ydl.extract_info(cand, download=True)
                                 if "entries" in info:
