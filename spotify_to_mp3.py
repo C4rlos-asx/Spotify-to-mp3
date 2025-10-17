@@ -560,6 +560,13 @@ def download_and_convert(
         ydl_opts["source_address"] = yt_source_addr
     if yt_proxy:
         ydl_opts["proxy"] = yt_proxy
+    # Optional Invidious instance to proxy YouTube requests
+    invid = os.getenv("INVIDIOUS_INSTANCE")
+    if invid:
+        try:
+            ydl_opts.setdefault("extractor_args", {}).setdefault("youtube", {})["invidious_instance"] = invid
+        except Exception:
+            pass
     # yt-dlp authentication options
     # Do not set username/password for YouTube (not supported); we still allow for other sites
     youtube_domain = "youtube.com"
@@ -586,6 +593,13 @@ def download_and_convert(
     # As a last resort, allow yt-dlp to run the search query itself
     if not candidates:
         candidates.append(query)
+    # Optional SoundCloud fallback: let yt-dlp search SoundCloud for the same query
+    try:
+        sc_fallback = (os.getenv("ENABLE_SOUNDCLOUD_FALLBACK", "true").strip().lower() in ("1", "true", "yes"))
+        if sc_fallback:
+            candidates.append(f"scsearch10:{query}")
+    except Exception:
+        pass
 
     try:
         for cand in candidates:
