@@ -19,5 +19,5 @@ COPY . .
 # Expose port
 EXPOSE 8000
 
-# Start with uvicorn CLI using import string and Render's $PORT
-CMD ["sh", "-c", "uvicorn web.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 2 --proxy-headers"]
+# Start with a single worker to preserve in-memory job state per process
+CMD ["sh", "-c", "uvicorn web.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --proxy-headers"]
