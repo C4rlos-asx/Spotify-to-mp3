@@ -18,7 +18,7 @@ services:
       - key: YT_CLIENTS
         value: android,web_embedded,tvhtml5
       - key: RATE_LIMIT
-        value: 800K
+        value: 600K
       - key: YT_PROXY
         value: ""
       - key: SLEEP_MIN
