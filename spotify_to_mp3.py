@@ -3,6 +3,7 @@ import re
 from urllib.parse import urlparse
 import sys
 import time
+import random
 import subprocess
 from dataclasses import dataclass
 from typing import List, Optional, Tuple, Callable
@@ -492,6 +493,21 @@ def download_and_convert(
     yt_clients_raw = os.getenv("YT_CLIENTS", "android,web_embedded,tvhtml5")
     yt_clients = [c.strip() for c in yt_clients_raw.split(',') if c.strip()]
     rate_limit = os.getenv("RATE_LIMIT", "800K")
+    yt_proxy = os.getenv("YT_PROXY")
+    try:
+        sleep_min = float(os.getenv("SLEEP_MIN", "2.5"))
+        sleep_max = float(os.getenv("SLEEP_MAX", "6.0"))
+    except Exception:
+        sleep_min, sleep_max = 2.5, 6.0
+    ua_env = os.getenv("YT_UA_LIST") or ""
+    if ua_env.strip():
+        ua_list = [u.strip() for u in ua_env.split("||") if u.strip()]
+    else:
+        ua_list = [
+            "Mozilla/5.0 (Linux; Android 12; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Mobile Safari/537.36",
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+            "Mozilla/5.0 (Chromium, like Gecko) TV Safari/537.36 YouTube/Android TV",
+        ]
 
     ydl_opts = {
         "format": "bestaudio/best",
@@ -509,11 +525,7 @@ def download_and_convert(
         "verbose": bool(verbose),
         "logger": ydl_logger,
         "http_headers": {
-            "User-Agent": (
-                "Mozilla/5.0 (Linux; Android 12; Pixel 6) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/125.0 Mobile Safari/537.36"
-            ),
+            "User-Agent": ua_list[0],
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
             "Accept-Language": "en-US,en;q=0.9",
             "Referer": "https://m.youtube.com/",
@@ -546,6 +558,8 @@ def download_and_convert(
         ydl_opts["geo_bypass_country"] = yt_geo.strip().upper()
     if yt_source_addr:
         ydl_opts["source_address"] = yt_source_addr
+    if yt_proxy:
+        ydl_opts["proxy"] = yt_proxy
     # yt-dlp authentication options
     # Do not set username/password for YouTube (not supported); we still allow for other sites
     youtube_domain = "youtube.com"
@@ -589,11 +603,7 @@ def download_and_convert(
                     # usar los mismos clientes para preflight
                     "extractor_args": {"youtube": {"player_client": yt_clients}},
                     "http_headers": {
-                        "User-Agent": (
-                            "Mozilla/5.0 (Linux; Android 12; Pixel 6) "
-                            "AppleWebKit/537.36 (KHTML, like Gecko) "
-                            "Chrome/125.0 Mobile Safari/537.36"
-                        ),
+                        "User-Agent": ua_list[0],
                         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
                         "Accept-Language": "en-US,en;q=0.9",
                         "Referer": "https://m.youtube.com/",
@@ -606,6 +616,8 @@ def download_and_convert(
                     info_opts["geo_bypass_country"] = yt_geo.strip().upper()
                 if yt_source_addr:
                     info_opts["source_address"] = yt_source_addr
+                if yt_proxy:
+                    info_opts["proxy"] = yt_proxy
                 with YoutubeDL(info_opts) as ydl:
                     meta_info = ydl.extract_info(cand, download=False)
                     if "entries" in meta_info:
@@ -620,7 +632,12 @@ def download_and_convert(
 
             for attempt in range(retries + 1):
                 try:
-                    with YoutubeDL(ydl_opts) as ydl:
+                    ua = ua_list[attempt % len(ua_list)]
+                    opts = dict(ydl_opts)
+                    headers = dict(ydl_opts["http_headers"])
+                    headers["User-Agent"] = ua
+                    opts["http_headers"] = headers
+                    with YoutubeDL(opts) as ydl:
                         info = ydl.extract_info(cand, download=True)
                         if "entries" in info:
                             info = info["entries"][0]
@@ -659,7 +676,12 @@ def download_and_convert(
                         try:
                             opts_android = dict(ydl_opts)
                             opts_android["extractor_args"] = {"youtube": {"player_client": ["android"]}}
-                            # Already has geo/cookies/source via ydl_opts copy
+                            ua2 = ua_list[(attempt + 1) % len(ua_list)]
+                            headers2 = dict(ydl_opts["http_headers"])
+                            headers2["User-Agent"] = ua2
+                            opts_android["http_headers"] = headers2
+                            if yt_proxy:
+                                opts_android["proxy"] = yt_proxy
                             with YoutubeDL(opts_android) as ydl:
                                 info = ydl.extract_info(cand, download=True)
                                 if "entries" in info:
@@ -680,9 +702,17 @@ def download_and_convert(
                         # Stop attempts for this candidate and try the next one
                         break
                     if attempt < retries:
-                        time.sleep(2.5 * (attempt + 1))
+                        try:
+                            delay = random.uniform(sleep_min, sleep_max)
+                            time.sleep(delay)
+                        except Exception:
+                            time.sleep(2.5)
                     # Continue to next attempt for this candidate
                     continue
+            try:
+                time.sleep(random.uniform(sleep_min, sleep_max))
+            except Exception:
+                pass
         # move to next candidate after exhausting attempts or breaking due to age issues
         return None
     finally:
