@@ -501,28 +501,35 @@ def download_and_convert(
         "no_warnings": (not verbose),
         "verbose": bool(verbose),
         "logger": ydl_logger,
-        # Use a modern UA to reduce anti-bot heuristics
         "http_headers": {
             "User-Agent": (
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "Mozilla/5.0 (Linux; Android 12; Pixel 6) "
                 "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/125.0.0.0 Safari/537.36"
+                "Chrome/125.0 Mobile Safari/537.36"
             ),
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
             "Accept-Language": "en-US,en;q=0.9",
         },
         "default_search": "ytsearch",
         "cachedir": False,
-        # controlar verbosidad por bandera externa
         "quiet": not bool(verbose),
         "no_warnings": not bool(verbose),
         "verbose": bool(verbose),
-        # Priorizar cliente ANDROID para reducir anti-bot
         "extractor_args": {
             "youtube": {
                 "player_client": ["android"],
             }
         },
+        "retries": 10,
+        "fragment_retries": 10,
+        "extractor_retries": 5,
+        "retry_sleep_functions": {"http": "exponential_backoff"},
+        "socket_timeout": 30,
+        "nocheckcertificate": True,
+        "concurrent_fragment_downloads": 1,
+        # "sleep_interval": 1.0,
+        # "max_sleep_interval": 3.0,
+        "geo_bypass": True,
     }
     # yt-dlp authentication options
     # Do not set username/password for YouTube (not supported); we still allow for other sites
