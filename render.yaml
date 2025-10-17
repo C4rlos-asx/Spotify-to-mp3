@@ -1,4 +1,4 @@
-  services:
+services:
   - type: web
     name: spotify2mp3-web
     env: docker
@@ -19,6 +19,7 @@
         value: android,web_embedded,tvhtml5
       - key: RATE_LIMIT
         value: 800K
+    healthCheckPath: /api/ffmpeg
     disk:
       name: s2mp3-data
       mountPath: /data
