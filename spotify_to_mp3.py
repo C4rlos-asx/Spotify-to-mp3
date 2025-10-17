@@ -486,9 +486,12 @@ def download_and_convert(
     # Resolve authentication preferences (no cookies supported)
     use_auth = bool(username or usenetrc)
 
-    # Optional region/IP settings from environment
+    # Optional region/IP/client/rate settings from environment
     yt_geo = os.getenv("YT_GEO")
     yt_source_addr = os.getenv("YT_SOURCE_ADDRESS")
+    yt_clients_raw = os.getenv("YT_CLIENTS", "android,web_embedded,tvhtml5")
+    yt_clients = [c.strip() for c in yt_clients_raw.split(',') if c.strip()]
+    rate_limit = os.getenv("RATE_LIMIT", "800K")
 
     ydl_opts = {
         "format": "bestaudio/best",
@@ -513,6 +516,8 @@ def download_and_convert(
             ),
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
             "Accept-Language": "en-US,en;q=0.9",
+            "Referer": "https://m.youtube.com/",
+            "Origin": "https://m.youtube.com",
         },
         "default_search": "ytsearch",
         "cachedir": False,
@@ -521,7 +526,7 @@ def download_and_convert(
         "verbose": bool(verbose),
         "extractor_args": {
             "youtube": {
-                "player_client": ["android"],
+                "player_client": yt_clients,
             }
         },
         "retries": 10,
@@ -531,8 +536,9 @@ def download_and_convert(
         "socket_timeout": 30,
         "nocheckcertificate": True,
         "concurrent_fragment_downloads": 1,
-        # "sleep_interval": 1.0,
-        # "max_sleep_interval": 3.0,
+        "sleep_interval": 1.5,
+        "max_sleep_interval": 4.0,
+        "ratelimit": rate_limit,
         "geo_bypass": True,
     }
     # Apply region/cookies/IP if provided
@@ -580,8 +586,20 @@ def download_and_convert(
                     "noplaylist": True,
                     "default_search": "ytsearch",
                     "cachedir": False,
-                    # usar android también para preflight
-                    "extractor_args": {"youtube": {"player_client": ["android"]}},
+                    # usar los mismos clientes para preflight
+                    "extractor_args": {"youtube": {"player_client": yt_clients}},
+                    "http_headers": {
+                        "User-Agent": (
+                            "Mozilla/5.0 (Linux; Android 12; Pixel 6) "
+                            "AppleWebKit/537.36 (KHTML, like Gecko) "
+                            "Chrome/125.0 Mobile Safari/537.36"
+                        ),
+                        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                        "Accept-Language": "en-US,en;q=0.9",
+                        "Referer": "https://m.youtube.com/",
+                        "Origin": "https://m.youtube.com",
+                    },
+                    "ratelimit": rate_limit,
                 }
                 # Carry region/IP into preflight
                 if yt_geo and len(yt_geo.strip()) == 2:
